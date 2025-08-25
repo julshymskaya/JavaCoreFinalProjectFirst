@@ -35,7 +35,7 @@ public class LogRecord {
         return new LogRecord(LocalDateTime.parse(tokens[0], formatter), tokens[1], tokens[2], tokens[3]);
     }
 
-    LogRecord(LocalDateTime dateTime, String fileName, String message, String status) {
+    public LogRecord(LocalDateTime dateTime, String fileName, String message, String status) {
         this.dateTime = dateTime;
         this.fileName = fileName;
         this.message = message;

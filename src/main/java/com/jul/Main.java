@@ -1,9 +1,6 @@
 package com.jul;
 
-import com.jul.service.AccountService;
-import com.jul.service.ArchiveService;
-import com.jul.service.LogService;
-import com.jul.service.TransferService;
+import com.jul.service.*;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -25,7 +22,16 @@ public class Main {
     public static void main(String[] args) throws IOException {
         AccountService accountService = new AccountService(DB_ROOT);
         ArchiveService archiveService = new ArchiveService(ARCHIVE_ROOT);
-        LogService logService = new LogService(formatter, LOG_FILE);
+
+        LogService logService;
+        if(args.length > 0 && args[0].equals("--db")) {
+            logService = new DbLogService();
+            System.out.println("Log service implementation: database");
+        } else {
+            logService = new FileLogService(formatter, LOG_FILE);
+            System.out.println("Log service implementation: file");
+        }
+
         TransferService service = new TransferService(accountService, archiveService, logService, INPUT_ROOT);
 
         Scanner scanner = new Scanner(System.in);
@@ -41,30 +47,33 @@ public class Main {
             do {
                 input = scanner.nextLine();
 
-                switch (input) {
-                    case "1": {
-                        service.transfer();
-                        System.out.println("Transfer successfully finished");
-                        break;
-                    }
-                    case "2":
-                        logService.findAll().forEach(logService::printLog);
-                        break;
-                    case "3":
-                        LocalDateTime from = null, to = null;
-                        try {
-                            System.out.print("Enter start of period: ");
-                            from = LocalDateTime.parse(scanner.nextLine(), formatter);
-
-                            System.out.print("Enter end of period: ");
-                            to = LocalDateTime.parse(scanner.nextLine(), formatter);
-                        } catch (DateTimeParseException e) {
-                            System.out.println("Invalid date time format: " + e.getMessage());
+                try {
+                    switch (input) {
+                        case "0" -> {
                         }
+                        case "1" -> {
+                            service.transfer();
+                            System.out.println("Transfer successfully finished");
+                        }
+                        case "2" -> logService.findAll().forEach(x -> System.out.println(x.toMessage(formatter)));
+                        case "3" -> {
+                            LocalDateTime from, to;
+                            try {
+                                System.out.print("Enter start of period: ");
+                                from = LocalDateTime.parse(scanner.nextLine(), formatter);
 
-                        logService.findBy(from, to).forEach(logService::printLog);
-                    default:
-                        System.out.println("Incorrect operation!");
+                                System.out.print("Enter end of period: ");
+                                to = LocalDateTime.parse(scanner.nextLine(), formatter);
+
+                                logService.findBy(from, to).forEach(x -> System.out.println(x.toMessage(formatter)));
+                            } catch (DateTimeParseException e) {
+                                System.out.println("Invalid date time format: " + e.getMessage());
+                            }
+                        }
+                        default -> System.out.println("Incorrect operation!");
+                    }
+                } catch (Exception exception) {
+                    exception.printStackTrace();
                 }
             } while (!input.equals("0"));
         } finally {
