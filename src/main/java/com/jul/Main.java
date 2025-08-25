@@ -53,7 +53,7 @@ public class Main {
                         }
                         case "1" -> {
                             service.transfer();
-                            System.out.println("Transfer successfully finished");
+                            System.out.println("Transfer finished");
                         }
                         case "2" -> logService.findAll().forEach(x -> System.out.println(x.toMessage(formatter)));
                         case "3" -> {
